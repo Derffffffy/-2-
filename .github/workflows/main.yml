@@ -1,0 +1,24 @@
+name: Build APK
+on: [push, workflow_dispatch]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+      - name: Build
+        run: |
+          GW=$(find . -name gradlew | head -n 1)
+          if [ -z "$GW" ]; then echo "No gradlew found"; exit 1; fi
+          cd $(dirname "$GW")
+          chmod +x gradlew
+          ./gradlew assembleDebug
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: mod-menu-final
+          path: "**/build/outputs/apk/debug/*.apk"
