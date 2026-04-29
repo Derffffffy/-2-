@@ -1,10 +1,41 @@
-name: Check Files
+name: Build APK from Zip
 on: [push, workflow_dispatch]
 jobs:
-  check:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: List all files
-        run: ls -R
+      
+      - name: Extract Project
+        run: |
+          ZIP_FILE=$(find . -name "*.zip" | head -n 1)
+          if [ -n "$ZIP_FILE" ]; then
+            unzip -o "$ZIP_FILE"
+          else
+            echo "Zip file not found!"
+            exit 1
+          fi
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Build with Gradle
+        run: |
+          GW_PATH=$(find . -name gradlew | head -n 1)
+          if [ -z "$GW_PATH" ]; then
+            echo "gradlew not found in zip!"
+            exit 1
+          fi
+          cd $(dirname "$GW_PATH")
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: ready-mod-menu
+          path: "**/build/outputs/apk/debug/*.apk"
       
