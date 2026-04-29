@@ -1,29 +1,10 @@
-name: Build APK
+name: Check Files
 on: [push, workflow_dispatch]
 jobs:
-  build:
+  check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Set up JDK
-        uses: actions/setup-java@v4
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-      - name: Build
-        run: |
-          # Ищем файл gradlew в любой папке
-          GW_PATH=$(find . -name gradlew | head -n 1)
-          if [ -z "$GW_PATH" ]; then
-            echo "Ошибка: файлы проекта не найдены. Проверь структуру репозитория!"
-            exit 1
-          fi
-          cd $(dirname "$GW_PATH")
-          chmod +x gradlew
-          ./gradlew assembleDebug
-      - name: Upload
-        uses: actions/upload-artifact@v4
-        with:
-          name: mod-menu-final
-          path: "**/build/outputs/apk/debug/*.apk"
-   
+      - name: List all files
+        run: ls -R
+      
