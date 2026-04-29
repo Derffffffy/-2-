@@ -1,4 +1,4 @@
-name: Build APK from Zip
+name: Final Build APK
 on: [push, workflow_dispatch]
 jobs:
   build:
@@ -6,36 +6,38 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: Extract Project
+      - name: Extract Everything
         run: |
-          ZIP_FILE=$(find . -name "*.zip" | head -n 1)
-          if [ -n "$ZIP_FILE" ]; then
-            unzip -o "$ZIP_FILE"
-          else
-            echo "Zip file not found!"
-            exit 1
-          fi
-
+          # Находим все zip-файлы и распаковываем
+          find . -name "*.zip" -exec unzip -o {} \;
+          
       - name: Set up JDK
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Build with Gradle
+      - name: Build APK
         run: |
+          # Ищем gradlew везде, даже в подпапках
           GW_PATH=$(find . -name gradlew | head -n 1)
           if [ -z "$GW_PATH" ]; then
-            echo "gradlew not found in zip!"
+            echo "ОШИБКА: Файл gradlew не найден даже после распаковки!"
+            ls -R
             exit 1
           fi
-          cd $(dirname "$GW_PATH")
+          
+          PROJECT_ROOT=$(dirname "$GW_PATH")
+          echo "Проект найден в: $PROJECT_ROOT"
+          cd "$PROJECT_ROOT"
+          
+          # Даем права и запускаем сборку
           chmod +x gradlew
           ./gradlew assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: ready-mod-menu
+          name: final-mod-menu
           path: "**/build/outputs/apk/debug/*.apk"
       
