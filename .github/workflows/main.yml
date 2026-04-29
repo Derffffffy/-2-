@@ -12,9 +12,13 @@ jobs:
           distribution: 'temurin'
       - name: Build
         run: |
-          GW=$(find . -name gradlew | head -n 1)
-          if [ -z "$GW" ]; then echo "No gradlew found"; exit 1; fi
-          cd $(dirname "$GW")
+          # Ищем файл gradlew в любой папке
+          GW_PATH=$(find . -name gradlew | head -n 1)
+          if [ -z "$GW_PATH" ]; then
+            echo "Ошибка: файлы проекта не найдены. Проверь структуру репозитория!"
+            exit 1
+          fi
+          cd $(dirname "$GW_PATH")
           chmod +x gradlew
           ./gradlew assembleDebug
       - name: Upload
@@ -22,3 +26,4 @@ jobs:
         with:
           name: mod-menu-final
           path: "**/build/outputs/apk/debug/*.apk"
+   
